@@ -111,7 +111,7 @@ char html_template[] PROGMEM = R"=====(
     
     <script>
       // OpenWeatherMap API key 
-      const openWeatherApiKey = "API_NØGLE";
+      const openWeatherApiKey = "485afda57ca7f69c46a57a0a2150b49c";
 
       // Function to fetch wind data from OpenWeatherMap
       async function fetchWindData() {
