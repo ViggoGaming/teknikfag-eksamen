@@ -1,5 +1,10 @@
 # teknikfag-eksamen
 
+Vores software anvender en række teknologier:
+* Open Weather API til at hente vindhastigheden fra internettet
+* Socket-protokollen til at vise værdier fra vores ADC i realtid
+* Chart.js til at lave en dynamisk graf
+
 
 
 # Demo af vores software
