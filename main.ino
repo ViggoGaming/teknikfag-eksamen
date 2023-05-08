@@ -7,6 +7,9 @@
 const char* ssid = "WIFI_NAVN";
 const char* password = "WIFI_KODE";
 
+const char* http_username = "test";
+const char* http_password = "test";
+
 String old_value;
 float value;
 bool pinStatus = false;
@@ -248,8 +251,13 @@ char html_template[] PROGMEM = R"=====(
 
 
 void handleMain() {
-  server.send_P(200, "text/html", html_template);
+  if (!server.authenticate(http_username, http_password)) {
+    server.requestAuthentication();
+  } else {
+    server.send_P(200, "text/html", html_template);
+  }
 }
+
 void handleNotFound() {
   server.send(404, "text/html", "<html><body><p>404 siden kunne ikke findes</p></body></html>");
 }
