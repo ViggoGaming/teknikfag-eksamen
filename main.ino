@@ -3,6 +3,8 @@
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
 #include <Hash.h>
+#include <MCP3008.h>
+#include <QuickMedianLib.h>
 
 const char* ssid = "WIFI_NAVN";
 const char* password = "WIFI_KODE";
@@ -16,6 +18,27 @@ bool pinStatus = false;
 
 ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
+
+
+#define D0 16
+#define D1 5
+#define D2 4
+#define D3 0
+#define D4 2
+#define D5 14
+#define D6 12
+#define D7 13
+#define D8 15
+
+#define medianPoints 255
+
+float Vin = 5.04;
+float ampmeterR = 0.28;
+
+int adc0 = 0;
+int adc1 = 0;
+
+MCP3008 adc(D5, D7, D6, D8);
 
 char html_template[] PROGMEM = R"=====(
 <!DOCTYPE html>
@@ -249,6 +272,18 @@ char html_template[] PROGMEM = R"=====(
 </html>
 )=====";
 
+void updateAdc() {
+  int adc0points[medianPoints];
+  int adc1points[medianPoints];
+  for (uint8_t i = 0; i < medianPoints; i++) {
+    adc0points[i] = adc.readADC(0);
+    adc1points[i] = adc.readADC(1);
+    delay(1);
+  }
+  adc0 = QuickMedian<int>::GetMedian(adc0points, medianPoints);
+  adc1 = QuickMedian<int>::GetMedian(adc1points, medianPoints);
+}
+
 
 void handleMain() {
   if (!server.authenticate(http_username, http_password)) {
@@ -266,9 +301,13 @@ void loop() {
   webSocket.loop();
   server.handleClient();
 
-  value = analogRead(A0);
-  float voltage = ((float) value)/1024.0*3.3*2;
-  webSocket.broadcastTXT(String("{\"type\":\"a0\",\"value\":\"" + String(voltage) + "\"}").c_str());
+  updateAdc();
+  float batteryVoltage = float(adc1) / 1023.0 * Vin;
+  float current = (float(adc0 - adc1) / 1023.0 * Vin) / ampmeterR;
+  
+  float effect = batteryVoltage * current
+  
+  webSocket.broadcastTXT(String("{\"type\":\"a0\",\"value\":\"" + String(effect) + "\"}").c_str());
   delay(50);
 }
 
